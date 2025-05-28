@@ -1,85 +1,7 @@
 import streamlit as st
-import pandas as pd
-from firebase_admin import credentials, initialize_app, auth, firestore # Import Firebase Admin SDK components
-import json # To parse firebase config
+import pandas as pd # Import pandas library
 
-# --- Firebase Initialization (น่ารักมากๆ เลยค่ะ!) ---
-# This part initializes Firebase only once per Streamlit session.
-# We use st.session_state to store the Firebase app and Firestore client.
-
-# Check if Firebase is already initialized in session state
-if 'firebase_app' not in st.session_state:
-    try:
-        # Global variables provided by the Canvas environment
-        app_id = st.secrets.get('__app_id', 'default-app-id') # Use st.secrets for __app_id
-        firebase_config_str = st.secrets.get('__firebase_config', '{}') # Use st.secrets for __firebase_config
-        initial_auth_token = st.secrets.get('__initial_auth_token', None) # Use st.secrets for __initial_auth_token
-
-        firebase_config = json.loads(firebase_config_str)
-
-        # Initialize Firebase Admin SDK
-        # Note: In a real deployment, you'd use a service account key.
-        # For Canvas, the config might be sufficient for client-side access or through a backend.
-        # This is a simplified client-side initialization.
-        if not firebase_config:
-            st.error("Firebase configuration is missing. Please ensure __firebase_config is set.")
-            st.stop() # Stop execution if config is missing
-
-        # Initialize Firebase App
-        # Use a dummy credential if no specific service account is provided, as it's client-side
-        if not credentials._get_app_instance(): # Check if an app is already initialized
-             firebase_app = initialize_app(options=firebase_config)
-        else:
-             firebase_app = credentials._get_app_instance() # Get existing app instance
-
-        db = firestore.client(firebase_app) # Get Firestore client
-        firebase_auth = auth.Client(firebase_app) # Get Auth client
-
-        st.session_state['firebase_app'] = firebase_app
-        st.session_state['db'] = db
-        st.session_state['firebase_auth'] = firebase_auth
-        st.session_state['user_id'] = None # Initialize user_id
-
-        # Authenticate user (anonymously if no custom token)
-        if initial_auth_token:
-            try:
-                user = firebase_auth.verify_id_token(initial_auth_token)
-                st.session_state['user_id'] = user['uid']
-            except Exception as e:
-                st.warning(f"Failed to verify custom token: {e}. Signing in anonymously.")
-                # Fallback to anonymous sign-in if custom token fails
-                try:
-                    anon_user = auth.sign_in_anonymously(firebase_auth)
-                    st.session_state['user_id'] = anon_user['uid']
-                except Exception as anon_e:
-                    st.error(f"Failed to sign in anonymously: {anon_e}")
-                    st.stop()
-        else:
-            try:
-                anon_user = auth.sign_in_anonymously(firebase_auth)
-                st.session_state['user_id'] = anon_user['uid']
-            except Exception as e:
-                st.error(f"Failed to sign in anonymously: {e}")
-                st.stop()
-
-        # Increment user count on app load
-        user_count_ref = db.collection(f"artifacts/{app_id}/public/data/user_counts").document("app_access_counter")
-        try:
-            user_count_ref.update({"count": firestore.Increment(1)}, firestore.CreateIfMissing(True))
-            st.session_state['user_count_initialized'] = True
-        except Exception as e:
-            st.warning(f"Failed to increment user count: {e}. Please check Firestore rules.")
-
-    except Exception as e:
-        st.error(f"Error initializing Firebase: {e}")
-        st.stop() # Stop execution if Firebase fails to initialize
-
-# Retrieve Firebase instances from session state
-db = st.session_state['db']
-user_id = st.session_state['user_id']
-app_id = st.secrets.get('__app_id', 'default-app-id') # Ensure app_id is available
-
-# --- Streamlit Page Configuration ---
+# Configure Streamlit page settings
 st.set_page_config(
     page_title="เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Home Loan Calculator)",
     page_icon="🏡",
@@ -110,20 +32,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# --- Display User ID and Live User Count ---
-st.sidebar.header("ข้อมูลผู้ใช้งาน (User Info)")
-st.sidebar.write(f"User ID: `{user_id}`")
-
-# Live user count display
-user_count_ref = db.collection(f"artifacts/{app_id}/public/data/user_counts").document("app_access_counter")
-try:
-    user_count_doc = user_count_ref.get()
-    current_user_count = user_count_doc.get("count") if user_count_doc.exists else 0
-    st.sidebar.info(f"จำนวนผู้เข้าใช้งาน: **{current_user_count}** ครั้ง (Total Accesses)")
-except Exception as e:
-    st.sidebar.warning(f"ไม่สามารถโหลดจำนวนผู้เข้าใช้งานได้: {e}")
-
 
 # Set the main title of the application
 st.title("🏡 เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Home Loan Calculator) 💖")
