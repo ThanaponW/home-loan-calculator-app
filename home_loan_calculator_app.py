@@ -1,80 +1,83 @@
 import streamlit as st
 import pandas as pd
-from firebase_admin import credentials, initialize_app, auth, firestore # Import Firebase Admin SDK components
+# เพิ่ม import 'firebase_admin' ตัวหลักด้วยนะคะ
+import firebase_admin
+from firebase_admin import credentials, initialize_app, auth, firestore
 import json # To parse firebase config
 
-# --- Firebase Initialization (น่ารักมากๆ เลยค่ะ!) ---
+# --- Firebase Initialization (น่ารักมากๆ เลยค่ะ! แก้ไขใหม่แล้วน้าา!) ---
 # This part initializes Firebase only once per Streamlit session.
 # We use st.session_state to store the Firebase app and Firestore client.
 
-# Check if Firebase is already initialized in session state
+# Check if Firebase is already initialized in session state (ส่วนนี้เหมือนเดิมค่ะ)
 if 'firebase_app' not in st.session_state:
     try:
-        # Global variables provided by the Canvas environment
-        app_id = st.secrets.get('__app_id', 'default-app-id') # Use st.secrets for __app_id
-        firebase_config_str = st.secrets.get('__firebase_config', '{}') # Use st.secrets for __firebase_config
-        initial_auth_token = st.secrets.get('__initial_auth_token', None) # Use st.secrets for __initial_auth_token
+        # Global variables provided by the Canvas environment (ส่วนนี้เหมือนเดิมค่ะ)
+        app_id = st.secrets.get('__app_id', 'default-app-id')
+        firebase_config_str = st.secrets.get('__firebase_config', '{}')
+        initial_auth_token = st.secrets.get('__initial_auth_token', None)
 
         firebase_config = json.loads(firebase_config_str)
 
-        # Initialize Firebase Admin SDK
-        # Note: In a real deployment, you'd use a service account key.
-        # For Canvas, the config might be sufficient for client-side access or through a backend.
-        # This is a simplified client-side initialization.
-        if not firebase_config:
+        if not firebase_config: # ส่วนนี้เหมือนเดิมค่ะ
             st.error("Firebase configuration is missing. Please ensure __firebase_config is set.")
-            st.stop() # Stop execution if config is missing
+            st.stop()
 
-        # Initialize Firebase App
-        # Use a dummy credential if no specific service account is provided, as it's client-side
-        if not credentials._get_app_instance(): # Check if an app is already initialized
+        # --- แก้ไขส่วนนี้ให้ถูกต้องนะคะ! ---
+        # ตรวจสอบว่า Firebase app ถูกเริ่มต้นแล้วหรือยัง
+        # โดยการเช็คจาก firebase_admin._apps
+        if not firebase_admin._apps: # ถ้ายังไม่มี app ไหนถูกเริ่มต้นเลย
              firebase_app = initialize_app(options=firebase_config)
         else:
-             firebase_app = credentials._get_app_instance() # Get existing app instance
+             # ถ้ามี app ถูกเริ่มต้นแล้ว ให้ดึง default app มาใช้
+             # นี่คือวิธีที่ถูกต้องในการดึง app ที่ถูกเริ่มต้นไปแล้วค่ะ
+             firebase_app = firebase_admin.get_app()
+        # --- จบส่วนแก้ไข ---
 
-        db = firestore.client(firebase_app) # Get Firestore client
-        firebase_auth = auth.Client(firebase_app) # Get Auth client
+        db = firestore.client(firebase_app) # ส่วนนี้เหมือนเดิมค่ะ
+        firebase_auth = auth.Client(firebase_app) # ส่วนนี้เหมือนเดิมค่ะ
 
-        st.session_state['firebase_app'] = firebase_app
-        st.session_state['db'] = db
-        st.session_state['firebase_auth'] = firebase_auth
-        st.session_state['user_id'] = None # Initialize user_id
+        st.session_state['firebase_app'] = firebase_app # ส่วนนี้เหมือนเดิมค่ะ
+        st.session_state['db'] = db # ส่วนนี้เหมือนเดิมค่ะ
+        st.session_state['firebase_auth'] = firebase_auth # ส่วนนี้เหมือนเดิมค่ะ
+        st.session_state['user_id'] = None # Initialize user_id (ส่วนนี้เหมือนเดิมค่ะ)
 
-        # Authenticate user (anonymously if no custom token)
+        # Authenticate user (anonymously if no custom token) (ส่วนนี้เหมือนเดิมค่ะ)
         if initial_auth_token:
             try:
                 user = firebase_auth.verify_id_token(initial_auth_token)
                 st.session_state['user_id'] = user['uid']
             except Exception as e:
                 st.warning(f"Failed to verify custom token: {e}. Signing in anonymously.")
-                # Fallback to anonymous sign-in if custom token fails
                 try:
-                    anon_user = auth.sign_in_anonymously(firebase_auth)
-                    st.session_state['user_id'] = anon_user['uid']
+                    # sign_in_anonymously requires firebase_admin.auth (Client) object
+                    anon_user = firebase_auth.sign_in_anonymously() # แก้เป็นเรียกผ่าน firebase_auth
+                    st.session_state['user_id'] = anon_user.uid # เข้าถึง uid ผ่าน .uid
                 except Exception as anon_e:
                     st.error(f"Failed to sign in anonymously: {anon_e}")
                     st.stop()
         else:
             try:
-                anon_user = auth.sign_in_anonymously(firebase_auth)
-                st.session_state['user_id'] = anon_user['uid']
+                # sign_in_anonymously requires firebase_admin.auth (Client) object
+                anon_user = firebase_auth.sign_in_anonymously() # แก้เป็นเรียกผ่าน firebase_auth
+                st.session_state['user_id'] = anon_user.uid # เข้าถึง uid ผ่าน .uid
             except Exception as e:
                 st.error(f"Failed to sign in anonymously: {e}")
                 st.stop()
 
-        # Increment user count on app load
+        # Increment user count on app load (ส่วนนี้เหมือนเดิมค่ะ)
         user_count_ref = db.collection(f"artifacts/{app_id}/public/data/user_counts").document("app_access_counter")
         try:
             user_count_ref.update({"count": firestore.Increment(1)}, firestore.CreateIfMissing(True))
             st.session_state['user_count_initialized'] = True
         except Exception as e:
-            st.warning(f"Failed to increment user count: {e}. Please check Firestore rules.")
+            st.warning(f"Failed to increment user count: {e}. Please check Firestore rules and Firebase configuration in Streamlit Secrets.")
 
-    except Exception as e:
+    except Exception as e: # ส่วนนี้เหมือนเดิมค่ะ
         st.error(f"Error initializing Firebase: {e}")
-        st.stop() # Stop execution if Firebase fails to initialize
+        st.stop()
 
-# Retrieve Firebase instances from session state
+# Retrieve Firebase instances from session state (ส่วนนี้เหมือนเดิมค่ะ)
 db = st.session_state['db']
 user_id = st.session_state['user_id']
 app_id = st.secrets.get('__app_id', 'default-app-id') # Ensure app_id is available
