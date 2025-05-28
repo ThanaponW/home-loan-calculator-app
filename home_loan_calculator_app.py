@@ -1,76 +1,7 @@
 import streamlit as st
-import pandas as pd
-import firebase_admin
-from firebase_admin import credentials, initialize_app, auth, firestore
-import json
+import pandas as pd # Import pandas library
 
-# --- Firebase Initialization (แก้ไขส่วน Auth เพื่อแก้ Error ล่าสุดนะคะ!) ---
-if 'firebase_app' not in st.session_state:
-    try:
-        app_id = st.secrets.get('__app_id', 'default-app-id')
-        firebase_config_str = st.secrets.get('__firebase_config', '{}')
-        initial_auth_token = st.secrets.get('__initial_auth_token', None)
-
-        firebase_config = json.loads(firebase_config_str)
-
-        if not firebase_config:
-            st.error("Firebase configuration is missing. Please ensure __firebase_config is set in Streamlit Secrets.")
-            st.stop()
-
-        if not firebase_admin._apps:
-             firebase_app = initialize_app(options=firebase_config)
-        else:
-             firebase_app = firebase_admin.get_app()
-
-        db = firestore.client(firebase_app)
-        firebase_auth = auth.Client(firebase_app)
-
-        st.session_state['firebase_app'] = firebase_app
-        st.session_state['db'] = db
-        st.session_state['firebase_auth'] = firebase_auth
-        st.session_state['user_id'] = None # Initialize user_id
-
-        # --- แก้ไขส่วน Authentication ตรงนี้เลยนะคะ! ---
-        # เราจะพยายามใช้ __initial_auth_token ที่แพลตฟอร์มอาจจะให้มา
-        # ถ้าไม่มี หรือใช้ไม่ได้ เราก็จะใช้ User ID แบบ "anonymous_session" สำหรับการแสดงผลค่ะ
-        if initial_auth_token:
-            try:
-                # พยายามยืนยันตัวตนจาก token ที่ได้รับ
-                decoded_token = firebase_auth.verify_id_token(initial_auth_token)
-                st.session_state['user_id'] = decoded_token['uid']
-            except Exception as e:
-                # ถ้ายืนยันตัวตนไม่ได้ (เช่น token หมดอายุ หรือไม่ถูกต้อง)
-                # เราจะบันทึก Error ไว้ แต่ยังคงให้แอปทำงานต่อได้ โดยให้ user_id เป็นค่าทั่วไป
-                st.warning(f"Failed to verify initial auth token: {e}. User ID will be 'anonymous_session'.")
-                st.session_state['user_id'] = "anonymous_session" # ใช้ ID แบบทั่วไป
-        else:
-            # ถ้าไม่มี initial_auth_token เลยตั้งแต่แรก
-            st.info("No initial auth token provided. User ID will be 'anonymous_session'.")
-            st.session_state['user_id'] = "anonymous_session" # ใช้ ID แบบทั่วไป
-
-        # Increment user count on app load (ส่วนนี้ยังเหมือนเดิมค่ะ เพราะมันทำงานกับ Firestore)
-        # Firestore Rules ที่เราตั้งไว้ (allow read, write: if request.auth != null;)
-        # จะทำงานได้เพราะเมื่อ Firebase SDK ถูกโหลด (แม้จะไม่มีการ sign-in ชัดเจนจากฝั่ง Python)
-        # Firebase Client SDK ที่รันใน Browser จะสร้าง Anonymous Session ให้โดยอัตโนมัติ
-        # ซึ่งทำให้ request.auth ไม่เป็น null และสามารถเขียนข้อมูลได้ค่ะ
-        user_count_ref = db.collection(f"artifacts/{app_id}/public/data/user_counts").document("app_access_counter")
-        try:
-            user_count_ref.update({"count": firestore.Increment(1)}, firestore.CreateIfMissing(True))
-            st.session_state['user_count_initialized'] = True
-        except Exception as e:
-            st.warning(f"Failed to increment user count: {e}. Please check Firestore rules and Streamlit Secrets.")
-
-    except Exception as e:
-        st.error(f"Error initializing Firebase: {e}")
-        st.stop()
-
-# Retrieve Firebase instances from session state (ส่วนนี้เหมือนเดิมค่ะ)
-db = st.session_state['db']
-user_id = st.session_state['user_id']
-app_id = st.secrets.get('__app_id', 'default-app-id')
-
-
-# --- Streamlit Page Configuration ---
+# Configure Streamlit page settings
 st.set_page_config(
     page_title="เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Home Loan Calculator)",
     page_icon="🏡",
@@ -101,20 +32,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# --- Display User ID and Live User Count ---
-st.sidebar.header("ข้อมูลผู้ใช้งาน (User Info)")
-st.sidebar.write(f"User ID: `{user_id}`")
-
-# Live user count display
-user_count_ref = db.collection(f"artifacts/{app_id}/public/data/user_counts").document("app_access_counter")
-try:
-    user_count_doc = user_count_ref.get()
-    current_user_count = user_count_doc.get("count") if user_count_doc.exists else 0
-    st.sidebar.info(f"จำนวนผู้เข้าใช้งาน: **{current_user_count}** ครั้ง (Total Accesses)")
-except Exception as e:
-    st.sidebar.warning(f"ไม่สามารถโหลดจำนวนผู้เข้าใช้งานได้: {e}")
-
 
 # Set the main title of the application
 st.title("🏡 เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Home Loan Calculator) 💖")
