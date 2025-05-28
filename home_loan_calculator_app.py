@@ -45,7 +45,7 @@ st.header("✨ ข้อมูลสินเชื่อ (Loan Information) ✨
 
 # Use st.container to group input fields for better organization
 with st.container(border=True):
-    # Input field for home price (changed from loan amount)
+    # Input field for home price
     home_price = st.number_input(
         "🏠 ราคาบ้าน (Home Price) (USD):",
         min_value=10000.0,
@@ -56,7 +56,7 @@ with st.container(border=True):
         help="ราคาซื้อขายของที่อยู่อาศัย (Purchase price of the residence)"
     )
 
-    # New input field for down payment
+    # Input field for down payment
     down_payment = st.number_input(
         "💰 เงินดาวน์ (Down Payment) (USD):",
         min_value=0.0,
@@ -118,7 +118,7 @@ with st.container(border=True):
         help="ค่าเบี้ยประกันบ้านที่ต้องชำระต่อปี (Home insurance premium payable per year)"
     )
 
-    # NEW: Input field for annual mortgage insurance
+    # Input field for annual mortgage insurance
     annual_mortgage_insurance = st.number_input(
         "💲 ค่าประกันสินเชื่อที่อยู่อาศัยรายปี (Annual Mortgage Insurance) (USD):",
         min_value=0.0,
@@ -175,19 +175,19 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
         # --- Calculate additional monthly expenses ---
         monthly_property_tax = annual_property_tax / 12
         monthly_home_insurance = annual_home_insurance / 12
-        monthly_mortgage_insurance = annual_mortgage_insurance / 12 # NEW: Monthly mortgage insurance
+        monthly_mortgage_insurance = annual_mortgage_insurance / 12 # Monthly mortgage insurance
         total_additional_monthly_cost = monthly_property_tax + monthly_home_insurance + monthly_mortgage_insurance # Include MI
 
         # --- Display calculation results ---
         st.header("💖 ผลการคำนวณ (Calculation Results) 💖")
         st.success(f"จำนวนเงินกู้ (หลังหักเงินดาวน์) (Loan Amount after Down Payment): **${calculated_loan_amount:,.2f} USD**") # Display calculated loan amount
-        st.success(f"ยอดผ่อนชำระต่อเดือน (ไม่รวมโปะเพิ่ม) (Monthly Payment (excluding additional principal)): **${monthly_payment_base:,.2f} USD**")
+        st.success(f"ยอดผ่อนชำระต่อเดือน (เงินต้นและดอกเบี้ย) (Monthly Payment (Principal & Interest)): **${monthly_payment_base:,.2f} USD**") # Clarified this label
         st.info(f"จำนวนงวดผ่อนชำระทั้งหมด (เดิม) (Total Number of Payments (Original)): {number_of_payments} เดือน (Months)")
 
         # Display monthly breakdown of additional costs
         st.write(f"ภาษีที่อยู่อาศัยต่อเดือน (Monthly Property Tax): **${monthly_property_tax:,.2f} USD**")
         st.write(f"ค่าประกันบ้านต่อเดือน (Monthly Home Insurance): **${monthly_home_insurance:,.2f} USD**")
-        st.write(f"ค่าประกันสินเชื่อที่อยู่อาศัยต่อเดือน (Monthly Mortgage Insurance): **${monthly_mortgage_insurance:,.2f} USD**") # NEW: Display MI
+        st.write(f"ค่าประกันสินเชื่อที่อยู่อาศัยต่อเดือน (Monthly Mortgage Insurance): **${monthly_mortgage_insurance:,.2f} USD**")
         st.markdown(f"## ยอดรวมที่ต้องจ่ายต่อเดือน (Total Monthly Payment): **${monthly_payment_base + total_additional_monthly_cost:,.2f} USD**")
 
         # --- Generate and display amortization table ---
@@ -211,17 +211,12 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
             # Calculate principal paid from the base payment
             principal_from_base_payment = monthly_payment_base - interest_for_month
 
-            # Total payment for this month (base loan payment + additional principal)
-            current_month_total_payment_for_table = monthly_payment_base + additional_principal_payment
-
             # Calculate total principal paid this month (from base payment + additional payment)
-            principal_paid_this_month = principal_from_base_payment + principal_from_base_payment
+            principal_paid_this_month = principal_from_base_payment + additional_principal_payment
 
             # Adjust principal payment for the final installment precisely
-            # And adjust the total payment for the final installment to match the remaining balance
             if remaining_balance < principal_paid_this_month:
                 principal_paid_this_month = remaining_balance
-                current_month_total_payment_for_table = remaining_balance + interest_for_month # Adjust total payment for last month
 
             # Calculate new remaining balance
             remaining_balance -= principal_paid_this_month
@@ -229,10 +224,12 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
             amortization_data.append({
                 "งวดที่ (Installment)": month,
                 "เงินต้นคงเหลือ (เริ่มต้น) (Beginning Balance)": f"{remaining_balance + principal_paid_this_month:,.2f}",
-                "ยอดผ่อนต่อเดือน (เงินกู้) (Monthly Payment (Loan))": f"{current_month_total_payment_for_table:,.2f}",
+                "ยอดผ่อนต่อเดือน (เงินต้น+ดอกเบี้ย) (Monthly Payment (P&I))": f"{monthly_payment_base:,.2f}", # Only P&I
+                "ยอดโปะเพิ่ม (Additional Principal)": f"{additional_principal_payment:,.2f}", # Separate column for additional principal
                 "ดอกเบี้ยที่จ่าย (Interest Paid)": f"{interest_for_month:,.2f}",
                 "เงินต้นที่จ่าย (Principal Paid)": f"{principal_paid_this_month:,.2f}",
-                "เงินต้นคงเหลือ (สิ้นสุด) (Ending Balance)": f"{max(0, remaining_balance):,.2f}" # Ensure balance doesn't go negative
+                "เงินต้นคงเหลือ (สิ้นสุด) (Ending Balance)": f"{max(0, remaining_balance):,.2f}", # Ensure balance doesn't go negative
+                "ค่าประกันสินเชื่อ (Mortgage Insurance)": f"{monthly_mortgage_insurance:,.2f}" # Separate column for MI
             })
 
         # Use st.expander to initially hide the table, preventing a long page on mobile
