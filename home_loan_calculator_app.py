@@ -118,6 +118,16 @@ with st.container(border=True):
         help="ค่าเบี้ยประกันบ้านที่ต้องชำระต่อปี (Home insurance premium payable per year)"
     )
 
+    # NEW: Input field for annual mortgage insurance
+    annual_mortgage_insurance = st.number_input(
+        "💲 ค่าประกันสินเชื่อที่อยู่อาศัยรายปี (Annual Mortgage Insurance) (USD):",
+        min_value=0.0,
+        value=0.0, # Default to 0 as it's not always required
+        step=10.0,
+        format="%.2f",
+        help="ค่าประกันสินเชื่อที่อยู่อาศัยที่ต้องชำระต่อปี (Mortgage insurance payable per year)"
+    )
+
 # --- Calculate button ---
 st.write("") # Add a small vertical space
 if st.button("คำนวณยอดผ่อนชำระ (Calculate Payment) ✨", use_container_width=True, type="primary"):
@@ -127,8 +137,8 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
     # Input validation
     if home_price <= 0 or down_payment < 0 or calculated_loan_amount <= 0 or interest_rate_annual < 0 or loan_term_years <= 0:
         st.error("กรุณากรอกข้อมูลสินเชื่อให้ถูกต้องและเป็นจำนวนบวก ตรวจสอบให้แน่ใจว่าราคาบ้านมากกว่าเงินดาวน์ (Please enter valid and positive loan information. Ensure home price is greater than down payment.)")
-    elif annual_property_tax < 0 or annual_home_insurance < 0:
-        st.error("กรุณากรอกภาษีที่อยู่อาศัยและค่าประกันบ้านให้ถูกต้องและเป็นจำนวนบวก (Please enter valid and positive property tax and home insurance amounts.)")
+    elif annual_property_tax < 0 or annual_home_insurance < 0 or annual_mortgage_insurance < 0:
+        st.error("กรุณากรอกภาษีที่อยู่อาศัย, ค่าประกันบ้าน และค่าประกันสินเชื่อที่อยู่อาศัยให้ถูกต้องและเป็นจำนวนบวก (Please enter valid and positive property tax, home insurance, and mortgage insurance amounts.)")
     else:
         # Convert annual interest rate to monthly rate
         monthly_interest_rate = (interest_rate_annual / 100) / 12
@@ -165,7 +175,8 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
         # --- Calculate additional monthly expenses ---
         monthly_property_tax = annual_property_tax / 12
         monthly_home_insurance = annual_home_insurance / 12
-        total_additional_monthly_cost = monthly_property_tax + monthly_home_insurance
+        monthly_mortgage_insurance = annual_mortgage_insurance / 12 # NEW: Monthly mortgage insurance
+        total_additional_monthly_cost = monthly_property_tax + monthly_home_insurance + monthly_mortgage_insurance # Include MI
 
         # --- Display calculation results ---
         st.header("💖 ผลการคำนวณ (Calculation Results) 💖")
@@ -176,6 +187,7 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
         # Display monthly breakdown of additional costs
         st.write(f"ภาษีที่อยู่อาศัยต่อเดือน (Monthly Property Tax): **${monthly_property_tax:,.2f} USD**")
         st.write(f"ค่าประกันบ้านต่อเดือน (Monthly Home Insurance): **${monthly_home_insurance:,.2f} USD**")
+        st.write(f"ค่าประกันสินเชื่อที่อยู่อาศัยต่อเดือน (Monthly Mortgage Insurance): **${monthly_mortgage_insurance:,.2f} USD**") # NEW: Display MI
         st.markdown(f"## ยอดรวมที่ต้องจ่ายต่อเดือน (Total Monthly Payment): **${monthly_payment_base + total_additional_monthly_cost:,.2f} USD**")
 
         # --- Generate and display amortization table ---
@@ -203,7 +215,7 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
             current_month_total_payment_for_table = monthly_payment_base + additional_principal_payment
 
             # Calculate total principal paid this month (from base payment + additional payment)
-            principal_paid_this_month = principal_from_base_payment + additional_principal_payment
+            principal_paid_this_month = principal_from_base_payment + principal_from_base_payment
 
             # Adjust principal payment for the final installment precisely
             # And adjust the total payment for the final installment to match the remaining balance
