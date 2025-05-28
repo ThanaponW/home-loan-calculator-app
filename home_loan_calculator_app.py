@@ -1,11 +1,12 @@
 import streamlit as st
-import pandas as pd # Import pandas library
+import pandas as pd
+import os
 
-# Configure Streamlit page settings
+# --- Streamlit Page Configuration ---
 st.set_page_config(
     page_title="เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Home Loan Calculator)",
     page_icon="🏡",
-    layout="centered", # Set layout to centered for better mobile display
+    layout="centered",
     initial_sidebar_state="collapsed"
 )
 
@@ -39,6 +40,33 @@ st.title("🏡 เครื่องคำนวณสินเชื่อท�
 # Greeting and explanation text
 st.write("ยินดีต้อนรับสู่เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Welcome to the Home Loan Calculator)")
 st.write("กรุณากรอกข้อมูลเพื่อคำนวณยอดผ่อนชำระและดูรายละเอียดการผ่อนชำระ (Please fill in the information to calculate monthly payments and view amortization details)")
+
+# --- Simple Visitor Counter (ส่วนนี้แหละค่ะ ที่เพิ่มเข้ามา!) ---
+# Define the path to the visitor count file
+VISITS_FILE = "visits.txt" # ชื่อไฟล์ที่เราสร้างใน GitHub ค่ะ
+
+# Read current visit count
+current_visits = 0
+if os.path.exists(VISITS_FILE):
+    try:
+        with open(VISITS_FILE, "r") as f:
+            current_visits = int(f.read().strip())
+    except Exception as e:
+        st.error(f"Error reading visit count: {e}")
+
+# Increment visit count only if not already counted in this session
+if "counted_visit" not in st.session_state:
+    current_visits += 1
+    st.session_state["counted_visit"] = True # Mark as counted for this session
+    try:
+        with open(VISITS_FILE, "w") as f:
+            f.write(str(current_visits))
+    except Exception as e:
+        st.error(f"Error writing visit count: {e}")
+
+st.sidebar.markdown(f"**จำนวนผู้เข้าชมแอป (Total Views):** {current_visits} ครั้ง")
+# --- End Simple Visitor Counter ---
+
 
 # --- Input section for loan details ---
 st.header("✨ ข้อมูลสินเชื่อ (Loan Information) ✨")
@@ -227,7 +255,7 @@ if st.button("คำนวณยอดผ่อนชำระ (Calculate Paymen
                 "ยอดผ่อนต่อเดือน (เงินต้น+ดอกเบี้ย) (Monthly Payment (P&I))": f"{monthly_payment_base:,.2f}", # Only P&I
                 "ยอดโปะเพิ่ม (Additional Principal)": f"{additional_principal_payment:,.2f}", # Separate column for additional principal
                 "ดอกเบี้ยที่จ่าย (Interest Paid)": f"{interest_for_month:,.2f}",
-                "เงินต้นที่จ่าย (Principal Paid)": f"{principal_paid_this_month:,.2f}",
+                "เงินต้นที่จ่าย (Principal Paid)": f"{principal_paid_this_this_month:,.2f}",
                 "เงินต้นคงเหลือ (สิ้นสุด) (Ending Balance)": f"{max(0, remaining_balance):,.2f}", # Ensure balance doesn't go negative
                 "ค่าประกันสินเชื่อ (Mortgage Insurance)": f"{monthly_mortgage_insurance:,.2f}" # Separate column for MI
             })
