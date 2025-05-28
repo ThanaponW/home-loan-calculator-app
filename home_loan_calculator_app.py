@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd # Import pandas library
+from streamlit_analytics import track
 
 # Configure Streamlit page settings
 st.set_page_config(
@@ -8,6 +9,8 @@ st.set_page_config(
     layout="centered", # Set layout to centered for better mobile display
     initial_sidebar_state="collapsed"
 )
+
+track(measurement_id=st.secrets["GA_MEASUREMENT_ID"])
 
 # Apply custom CSS for a light gray background color and black text color
 st.markdown(
