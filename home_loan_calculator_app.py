@@ -3,7 +3,7 @@ import pandas as pd # Import pandas library
 
 # Configure Streamlit page settings
 st.set_page_config(
-    page_title="เครื่องคำนวณสินเชื่อที่อยู่อาศัย",
+    page_title="เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Home Loan Calculator)",
     page_icon="🏡",
     layout="centered", # Set layout to centered for better mobile display
     initial_sidebar_state="collapsed"
@@ -34,101 +34,101 @@ st.markdown(
 )
 
 # Set the main title of the application
-st.title("🏡 เครื่องคำนวณสินเชื่อที่อยู่อาศัย 💖")
+st.title("🏡 เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Home Loan Calculator) 💖")
 
 # Greeting and explanation text
-st.write("ยินดีต้อนรับสู่เครื่องคำนวณสินเชื่อที่อยู่อาศัย")
-st.write("กรุณากรอกข้อมูลเพื่อคำนวณยอดผ่อนชำระและดูรายละเอียดการผ่อนชำระ")
+st.write("ยินดีต้อนรับสู่เครื่องคำนวณสินเชื่อที่อยู่อาศัย (Welcome to the Home Loan Calculator)")
+st.write("กรุณากรอกข้อมูลเพื่อคำนวณยอดผ่อนชำระและดูรายละเอียดการผ่อนชำระ (Please fill in the information to calculate monthly payments and view amortization details)")
 
 # --- Input section for loan details ---
-st.header("✨ ข้อมูลสินเชื่อ ✨")
+st.header("✨ ข้อมูลสินเชื่อ (Loan Information) ✨")
 
 # Use st.container to group input fields for better organization
 with st.container(border=True):
     # Input field for home price (changed from loan amount)
     home_price = st.number_input(
-        "🏠 ราคาบ้าน (USD):",
+        "🏠 ราคาบ้าน (Home Price) (USD):",
         min_value=10000.0,
         max_value=10000000.0,
         value=250000.0, # Default value for home price
         step=1000.0,
         format="%.2f",
-        help="ราคาซื้อขายของที่อยู่อาศัย"
+        help="ราคาซื้อขายของที่อยู่อาศัย (Purchase price of the residence)"
     )
 
     # New input field for down payment
     down_payment = st.number_input(
-        "💰 เงินดาวน์ (USD):",
+        "💰 เงินดาวน์ (Down Payment) (USD):",
         min_value=0.0,
         max_value=10000000.0,
         value=50000.0, # Default value for down payment
         step=1000.0,
         format="%.2f",
-        help="จำนวนเงินดาวน์ที่ชำระ"
+        help="จำนวนเงินดาวน์ที่ชำระ (Amount of down payment made)"
     )
 
     # Input field for annual interest rate
     interest_rate_annual = st.number_input(
-        "📊 อัตราดอกเบี้ยต่อปี (%):",
+        "📊 อัตราดอกเบี้ยต่อปี (Annual Interest Rate) (%):",
         min_value=0.1,
         max_value=20.0,
         value=4.5, # Default value
         step=0.1,
         format="%.2f",
-        help="อัตราดอกเบี้ยต่อปี (เช่น 4.5 สำหรับ 4.5%)"
+        help="อัตราดอกเบี้ยต่อปี (เช่น 4.5 สำหรับ 4.5%) (Annual interest rate, e.g., 4.5 for 4.5%)"
     )
 
     # Input field for loan term in years
     loan_term_years = st.number_input(
-        "🗓️ ระยะเวลาผ่อน (ปี):",
+        "🗓️ ระยะเวลาผ่อน (Loan Term) (ปี/Years):",
         min_value=1,
         max_value=50,
         value=30, # Default value
         step=1,
-        help="ระยะเวลาผ่อนชำระทั้งหมดเป็นปี"
+        help="ระยะเวลาผ่อนชำระทั้งหมดเป็นปี (Total repayment period in years)"
     )
 
     # Input field for additional principal payment per month
     additional_principal_payment = st.number_input(
-        "💸 ยอดโปะเพิ่มต่อเดือน (USD):",
+        "💸 ยอดโปะเพิ่มต่อเดือน (Additional Principal Payment per Month) (USD):",
         min_value=0.0,
         value=0.0, # Default to 0
         step=10.0,
         format="%.2f",
-        help="จำนวนเงินต้นที่ต้องการชำระเพิ่มในแต่ละงวด"
+        help="จำนวนเงินต้นที่ต้องการชำระเพิ่มในแต่ละงวด (Amount of additional principal to pay each installment)"
     )
 
     # Input field for annual property tax
     annual_property_tax = st.number_input(
-        "🏡 ภาษีที่อยู่อาศัยรายปี (USD):",
+        "🏡 ภาษีที่อยู่อาศัยรายปี (Annual Property Tax) (USD):",
         min_value=0.0,
         value=3000.0, # Default value
         step=100.0,
         format="%.2f",
-        help="ภาษีที่อยู่อาศัยที่ต้องชำระต่อปี"
+        help="ภาษีที่อยู่อาศัยที่ต้องชำระต่อปี (Property tax payable per year)"
     )
 
     # Input field for annual home insurance
     annual_home_insurance = st.number_input(
-        "🛡️ ค่าประกันบ้านรายปี (USD):",
+        "🛡️ ค่าประกันบ้านรายปี (Annual Home Insurance) (USD):",
         min_value=0.0,
         value=1200.0, # Default value
         step=50.0,
         format="%.2f",
-        help="ค่าเบี้ยประกันบ้านที่ต้องชำระต่อปี"
+        help="ค่าเบี้ยประกันบ้านที่ต้องชำระต่อปี (Home insurance premium payable per year)"
     )
 
 # --- Calculate button ---
 st.write("") # Add a small vertical space
-if st.button("คำนวณยอดผ่อนชำระ ✨", use_container_width=True, type="primary"):
+if st.button("คำนวณยอดผ่อนชำระ (Calculate Payment) ✨", use_container_width=True, type="primary"):
     # Calculate actual loan amount from home price and down payment
     calculated_loan_amount = home_price - down_payment
 
     # Input validation
     if home_price <= 0 or down_payment < 0 or calculated_loan_amount <= 0 or interest_rate_annual < 0 or loan_term_years <= 0:
-        st.error("กรุณากรอกข้อมูลสินเชื่อให้ถูกต้องและเป็นจำนวนบวก ตรวจสอบให้แน่ใจว่าราคาบ้านมากกว่าเงินดาวน์")
+        st.error("กรุณากรอกข้อมูลสินเชื่อให้ถูกต้องและเป็นจำนวนบวก ตรวจสอบให้แน่ใจว่าราคาบ้านมากกว่าเงินดาวน์ (Please enter valid and positive loan information. Ensure home price is greater than down payment.)")
     elif annual_property_tax < 0 or annual_home_insurance < 0:
-        st.error("กรุณากรอกภาษีที่อยู่อาศัยและค่าประกันบ้านให้ถูกต้องและเป็นจำนวนบวก")
+        st.error("กรุณากรอกภาษีที่อยู่อาศัยและค่าประกันบ้านให้ถูกต้องและเป็นจำนวนบวก (Please enter valid and positive property tax and home insurance amounts.)")
     else:
         # Convert annual interest rate to monthly rate
         monthly_interest_rate = (interest_rate_annual / 100) / 12
@@ -168,18 +168,18 @@ if st.button("คำนวณยอดผ่อนชำระ ✨", use_contain
         total_additional_monthly_cost = monthly_property_tax + monthly_home_insurance
 
         # --- Display calculation results ---
-        st.header("💖 ผลการคำนวณ 💖")
-        st.success(f"จำนวนเงินกู้ (หลังหักเงินดาวน์): **${calculated_loan_amount:,.2f} USD**") # Display calculated loan amount
-        st.success(f"ยอดผ่อนชำระต่อเดือน (ไม่รวมโปะเพิ่ม): **${monthly_payment_base:,.2f} USD**")
-        st.info(f"จำนวนงวดผ่อนชำระทั้งหมด (เดิม): {number_of_payments} เดือน")
+        st.header("💖 ผลการคำนวณ (Calculation Results) 💖")
+        st.success(f"จำนวนเงินกู้ (หลังหักเงินดาวน์) (Loan Amount after Down Payment): **${calculated_loan_amount:,.2f} USD**") # Display calculated loan amount
+        st.success(f"ยอดผ่อนชำระต่อเดือน (ไม่รวมโปะเพิ่ม) (Monthly Payment (excluding additional principal)): **${monthly_payment_base:,.2f} USD**")
+        st.info(f"จำนวนงวดผ่อนชำระทั้งหมด (เดิม) (Total Number of Payments (Original)): {number_of_payments} เดือน (Months)")
 
         # Display monthly breakdown of additional costs
-        st.write(f"ภาษีที่อยู่อาศัยต่อเดือน: **${monthly_property_tax:,.2f} USD**")
-        st.write(f"ค่าประกันบ้านต่อเดือน: **${monthly_home_insurance:,.2f} USD**")
-        st.markdown(f"## ยอดรวมที่ต้องจ่ายต่อเดือน: **${monthly_payment_base + total_additional_monthly_cost:,.2f} USD**")
+        st.write(f"ภาษีที่อยู่อาศัยต่อเดือน (Monthly Property Tax): **${monthly_property_tax:,.2f} USD**")
+        st.write(f"ค่าประกันบ้านต่อเดือน (Monthly Home Insurance): **${monthly_home_insurance:,.2f} USD**")
+        st.markdown(f"## ยอดรวมที่ต้องจ่ายต่อเดือน (Total Monthly Payment): **${monthly_payment_base + total_additional_monthly_cost:,.2f} USD**")
 
         # --- Generate and display amortization table ---
-        st.header("📊 รายละเอียดการผ่อนชำระ (รวมยอดโปะเพิ่ม) 📊")
+        st.header("📊 รายละเอียดการผ่อนชำระ (รวมยอดโปะเพิ่ม) (Amortization Details (with Additional Principal)) 📊")
 
         amortization_data = []
         remaining_balance = calculated_loan_amount # Start with calculated loan amount
@@ -215,33 +215,33 @@ if st.button("คำนวณยอดผ่อนชำระ ✨", use_contain
             remaining_balance -= principal_paid_this_month
 
             amortization_data.append({
-                "งวดที่": month,
-                "เงินต้นคงเหลือ (เริ่มต้น)": f"{remaining_balance + principal_paid_this_month:,.2f}",
-                "ยอดผ่อนต่อเดือน (เงินกู้)": f"{current_month_total_payment_for_table:,.2f}",
-                "ดอกเบี้ยที่จ่าย": f"{interest_for_month:,.2f}",
-                "เงินต้นที่จ่าย": f"{principal_paid_this_month:,.2f}",
-                "เงินต้นคงเหลือ (สิ้นสุด)": f"{max(0, remaining_balance):,.2f}" # Ensure balance doesn't go negative
+                "งวดที่ (Installment)": month,
+                "เงินต้นคงเหลือ (เริ่มต้น) (Beginning Balance)": f"{remaining_balance + principal_paid_this_month:,.2f}",
+                "ยอดผ่อนต่อเดือน (เงินกู้) (Monthly Payment (Loan))": f"{current_month_total_payment_for_table:,.2f}",
+                "ดอกเบี้ยที่จ่าย (Interest Paid)": f"{interest_for_month:,.2f}",
+                "เงินต้นที่จ่าย (Principal Paid)": f"{principal_paid_this_month:,.2f}",
+                "เงินต้นคงเหลือ (สิ้นสุด) (Ending Balance)": f"{max(0, remaining_balance):,.2f}" # Ensure balance doesn't go negative
             })
 
         # Use st.expander to initially hide the table, preventing a long page on mobile
-        with st.expander("คลิกเพื่อดูตารางรายละเอียดการผ่อนชำระ"):
+        with st.expander("คลิกเพื่อดูตารางรายละเอียดการผ่อนชำระ (Click to view Amortization Table)"):
             df_amortization = pd.DataFrame(amortization_data)
             st.dataframe(df_amortization, use_container_width=True) # Streamlit displays an interactive table
 
         st.write("") # Add a small vertical space
         if actual_payments_made < number_of_payments:
-            st.success(f"ยอดผ่อนชำระหมดภายใน: **{actual_payments_made} เดือน** (ประหยัดไป {number_of_payments - actual_payments_made} เดือน!) 🎉")
+            st.success(f"ยอดผ่อนชำระหมดภายใน: **{actual_payments_made} เดือน** (ประหยัดไป {number_of_payments - actual_payments_made} เดือน!) (Loan paid off in: **{actual_payments_made} months** (Saved {number_of_payments - actual_payments_made} months!)) 🎉")
         else:
-            st.info("คุณไม่ได้โปะเพิ่ม หรือโปะแล้วแต่ระยะเวลาผ่อนยังคงเดิม")
+            st.info("คุณไม่ได้โปะเพิ่ม หรือโปะแล้วแต่ระยะเวลาผ่อนยังคงเดิม (No additional principal payment made, or loan term remains the same.)")
 
         # Calculate interest saved
         interest_saved = total_interest_paid_original - total_interest_paid_with_additional
         if interest_saved > 0:
-            st.success(f"ประหยัดดอกเบี้ยไปได้: **${interest_saved:,.2f} USD** ค่ะ! ยอดเยี่ยมไปเลย! 💸")
+            st.success(f"ประหยัดดอกเบี้ยไปได้: **${interest_saved:,.2f} USD** ค่ะ! ยอดเยี่ยมไปเลย! (Interest Saved: **${interest_saved:,.2f} USD**! Excellent!) 💸")
         else:
-            st.info("ไม่มีการประหยัดดอกเบี้ยจากการโปะเพิ่ม")
+            st.info("ไม่มีการประหยัดดอกเบี้ยจากการโปะเพิ่ม (No interest saved from additional principal payment.)")
 
-        st.success(f"รวมดอกเบี้ยที่จ่ายตลอดสัญญา (รวมโปะเพิ่ม): **${total_interest_paid_with_additional:,.2f} USD**")
+        st.success(f"รวมดอกเบี้ยที่จ่ายตลอดสัญญา (รวมโปะเพิ่ม) (Total Interest Paid (with Additional Principal)): **${total_interest_paid_with_additional:,.2f} USD**")
 
 st.write("\n")
 st.markdown("---")
